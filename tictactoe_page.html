@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script type="text/javascript">
+var sessionid_frombottle = null;
+var arrId_all = ["sq0","sq1","sq2","sq3","sq4","sq5","sq6","sq7","sq8"];
+var arrId_played = [];
+window.onload = function(){
+    onnewgame();
+};
+function newGame(){
+    arrId_played = [];
+    sessionid_frombottle = null;
+    $(document).ready(function() {
+        var requestData = {
+            requestType: "newgame"
+            };
+            
+            $.post({
+                contentType: 'application/json',
+                dataType: 'json',
+                data: JSON.stringify(requestData),
+                url: 'tictactoe',
+                error:function () {
+                    alert('Sorry, an error occurred. Please try again later.');
+                    alert(JSON.stringify(requestData))
+                },
+                success: function(data) {
+                    sessionid_frombottle = data.session_id;
+                }
+            });
+        }
+    )
+};
+function playSquare(playsquare){
+    $(document).ready(function() {
+        var requestData = {
+            requestType: "playgame",
+            session_id: sessionid_frombottle,
+            play: playsquare
+        };
+        
+        $.post({
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify(requestData),
+            url: 'tictactoe',
+            error:function () {
+                alert('Sorry, an error occurred. Please try again later.');
+                alert(JSON.stringify(requestData))
+            },
+            success: function(data) {
+                var x_moves = data.gameboard_grid_x;
+                var o_moves = data.gameboard_grid_o;
+                var game_result = data.gameresult_end;
+                arrId_played = x_moves.concat(o_moves);
+                updateplayedsquares(x_moves, o_moves);
+                setplaygamestate(game_result);
+            }
+        });
+    });
+};
+function updateplayedsquares(x_move, o_move){
+    for(var i=0; i<x_move.length; i++){
+        var elem_x = getplayersquare(x_move[i]);
+        if (elem_x != null){
+            elem_x.setAttribute('opacity', '1');
+            elem_x.setAttribute("href", "#shape_player1_x");
+        }else{
+            console.log('could not resolve x move '+x_move[i]);
+        }
+    }
+    for(var i=0; i<o_move.length; i++){
+        var elem_o = getplayersquare(o_move[i]);
+        if (elem_o != null){
+            elem_o.setAttribute('opacity', '1');
+            elem_o.setAttribute("href", "#shape_player2_o");
+        }else{
+            console.log('could not resolve o move '+o_move[i]);
+        }
+    }
+};
+function playersquareOver(squareno){
+    if(arrId_played.indexOf(squareno) == -1){
+        elem = getplayersquare(squareno);
+        if (elem != null){
+            elem.setAttribute('opacity', '0.5');
+            }
+    }
+};
+function playersquareOut(squareno){
+    if(arrId_played.indexOf(squareno) == -1){
+        elem = getplayersquare(squareno);
+        if (elem != null){
+            elem.setAttribute('opacity', '0');
+            }
+    }
+};
+function getplayersquare(squareno){
+    var id = arrId_all[squareno];
+    var elem = document.getElementById(id);
+    return elem;
+};
+function setturnstate(playerturn){
+    for(var i=0; i<arrId_all.length; i++){
+        var id = arrId_all[i];
+        var elem = document.getElementById(id);
+        elem.setAttribute('opacity', '0');
+        if(playerturn == "player 1"){
+            elem.setAttribute('href', '#shape_player1_x');
+        }
+        else if(playerturn == "player 2"){
+            elem.setAttribute('href', '#shape_player2_o');
+        }
+    }
+};
+function onnewgame(){
+    var grid_elem = document.getElementById("grid");
+    grid_elem.setAttribute("opacity", "1");
+    setturnstate("player 1");
+    setplaygamestate("in play");
+    newGame();
+};
+function setplaygamestate(state){
+    var state_shape = null;
+    if(state == "human won"){
+        state_shape = "#shape_playerwon_state";
+    }else if(state == "ai won"){
+        state_shape = "#shape_playerlost_state";
+    }else if(state == "in play"){
+        state_shape = "#shape_inplay";
+    }else if(state == "tie"){
+        state_shape = "#shape_tie";
+    }
+    
+    var state_elem = document.getElementById("playgame_state");
+    if(state_elem != null){
+        state_elem.setAttribute("href", state_shape);
+        if(state_shape != null){
+            state_elem.setAttribute("opacity", 1);
+        }else{
+            state_elem.setAttribute("opacity", 0);
+        }
+    }
+};
+</script>
+</head>
+<body>
+<svg id="svgBoard" height="256" width="256">
+    <use id="playgame_state" x="0" y="192" href="#shape_playgame_state" />
+    <use id="playnew_btn" x="0" y="160" href="#playgame_new" opacity="0.5" onmouseover="evt.target.setAttribute('opacity', '1');" onmouseleave="evt.target.setAttribute('opacity', '0.5');" onmouseup="onnewgame();" />
+    <use id="grid" x="0" y="0" href="#shape_grid" style="fill:gray;stroke:gray;stroke-width:2;fill-opacity:0.2" />
+    <use id="sq0" x="16" y="16" href="#shape_player1_x" onmouseover="playersquareOver(0);" onmouseleave="playersquareOut(0);" onmouseup="playSquare(0)" />
+    <use id="sq1" x="64" y="16" href="#shape_player1_x" onmouseover="playersquareOver(1);" onmouseleave="playersquareOut(1);" onmouseup="playSquare(1)" />
+    <use id="sq2" x="112" y="16" href="#shape_player1_x" onmouseover="playersquareOver(2);" onmouseleave="playersquareOut(2);" onmouseup="playSquare(2)" />
+    <use id="sq3" x="16" y="64" href="#shape_player1_x" onmouseover="playersquareOver(3);" onmouseleave="playersquareOut(3);" onmouseup="playSquare(3)" />
+    <use id="sq4" x="64" y="64" href="#shape_player1_x" onmouseover="playersquareOver(4);" onmouseleave="playersquareOut(4);" onmouseup="playSquare(4)" />
+    <use id="sq5" x="112" y="64" href="#shape_player1_x" onmouseover="playersquareOver(5);" onmouseleave="playersquareOut(5);" onmouseup="playSquare(5)" />
+    <use id="sq6" x="16" y="112" href="#shape_player1_x" onmouseover="playersquareOver(6);" onmouseleave="playersquareOut(6);" onmouseup="playSquare(6)" />
+    <use id="sq7" x="64" y="112" href="#shape_player1_x" onmouseover="playersquareOver(7);" onmouseleave="playersquareOut(7);" onmouseup="playSquare(7)" />
+    <use id="sq8" x="112" y="112" href="#shape_player1_x" onmouseover="playersquareOver(8);" onmouseleave="playersquareOut(8);" onmouseup="playSquare(8)" />
+    <defs>
+        <g id="shape_player1_x" opacity="1" >
+            <rect x="0" y="0" width="32" height="32" opacity="0" />
+            <line x1="0" y1="0" x2="16" y2="16" stroke="green" stroke-width="10" stroke-linecap="round" stroke-opacity="1" />
+            <line x1="0" y1="16" x2="16" y2="0" stroke="green" stroke-width="10" stroke-linecap="round" stroke-opacity="1" />
+        </g>
+        <g id="shape_player2_o" opacity="1">
+            <circle cx="8" cy="8" r="10" stroke="blue" fill="transparent" stroke-width="8" style="stroke-opacity:1" />
+        </g>
+        <g id="shape_grid" opacity="1">
+            <line x1="0" y1="48" x2="144" y2="48" stroke="gray" stroke-width="2" stroke-linecap="square" />
+            <line x1="0" y1="96" x2="144" y2="96" stroke="gray" stroke-width="2" stroke-linecap="square" />
+            <line x1="48" y1="0" x2="48" y2="144" stroke="gray" stroke-width="2" stroke-linecap="square" />
+            <line x1="96" y1="0" x2="96" y2="144" stroke="gray" stroke-width="2" stroke-linecap="square" />
+        </g>
+        <g id="playgame_new" opacity="1">
+            <rect x="0" y="0" width="144" height="32" style="fill:gray;stroke:gray;stroke-width:2;fill-opacity:0.2" />
+            <text x="16" y="20" font-family="Verdana" font-size="12">Play a new game!</text>
+        </g>
+        <g id="shape_playerwon_state" opacity="1">
+            <text x="16" y="20" font-family="Verdana" font-size="12" fill="green">Silly human won!</text>
+        </g>
+        <g id="shape_playerlost_state" opacity="1">
+            <text x="16" y="20" font-family="Verdana" font-size="12" fill="blue">AI won, predictably.</text>
+        </g>
+        <g id="shape_inplay" opacity="1">
+            <text x="16" y="20" font-family="Verdana" font-size="12" fill="gray">Game is still in play.</text>
+        </g>
+        <g id="shape_tie" opacity="1">
+            <text x="16" y="20" font-family="Verdana" font-size="12" fill="gray">Tie game...:(</text>
+        </g>
+    </defs>
+</svg>
+</body>
+</html>
