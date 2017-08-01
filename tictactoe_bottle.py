@@ -1,4 +1,4 @@
-from bottle import default_app, post, get, request, response, template
+from bottle import default_app, post, get, request, response, template, run
 import tictactoe_logic
 import json
 import uuid
@@ -55,3 +55,4 @@ def tictactoe_post_handler():
     return json.dumps(jsonoutput)
     
 application = default_app()
+#run(host='localhost', port=8080, debug=True)

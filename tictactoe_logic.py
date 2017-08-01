@@ -1,17 +1,36 @@
 import random
 
+#game state constants
+IN_PLAY = 0
+WIN = 1
+TIE = 2
+#player constants
+PLAYER1 = 0
+PLAYER2 = 1
+#state description
+GAMESTATE_DESCRIPTIONS = {
+    0: 'in play',
+    1: 'win',
+    2: 'tie',
+}
+#player description
+PLAYER_DESCRIPTIONS = {
+    0: 'player 1',
+    1: 'player 2',
+}
+
 class tictactoeGame:
     def __init__(self):
-        self.gamestate = 0 #0=in play;1=win;2=tie
+        self.gamestate = IN_PLAY #0=in play;1=win;2=tie
         self.player1_moves = set()
         self.player2_moves = set()
-        self.current_player_turn = 0 #0=player1;1=player2
+        self.current_player_turn = PLAYER1 #0=player1;1=player2
         print 'init'
     
     def validatemove(self, move):
         print 'validating move', move
         #is the 'move' in range?
-        if not self.gamestate == 0:
+        if not self.gamestate == IN_PLAY:
             print 'game is not in play'
             return False
         if move > 8 or move < 0:
@@ -24,28 +43,20 @@ class tictactoeGame:
         return True
         
     def getgamestate(self):
-        if self.gamestate == 0:
-            return "in play"
-        elif self.gamestate == 1:
-            return "win"
-        else:
-            return "tie"
+        return GAMESTATE_DESCRIPTIONS[self.gamestate]
             
     def getcurrentplayerturn(self):
-        if self.current_player_turn == 0:
-            return "player 1"
-        elif self.current_player_turn == 1:
-            return "player 2"
+        return PLAYER_DESCRIPTIONS[self.current_player_turn]
     
     def getopenmoves(self):
         allmoves = {0,1,2,3,4,5,6,7,8}
         return allmoves-(self.player1_moves | self.player2_moves)
         
     def playhumanmove(self, move):
-        if self.validatemove(move) == True and self.current_player_turn == 0:
+        if self.validatemove(move) == True and self.current_player_turn == PLAYER1:
             print 'adding move', move, 'to player player', self.player1_moves
             self.player1_moves.add(move)
-            self.current_player_turn = 1
+            self.current_player_turn = PLAYER2
             print 'human play made at', move
             return True
         else:
@@ -56,7 +67,11 @@ class tictactoeGame:
         #012
         #345
         #678
-        winStateList = [{0,1,2},{3,4,5},{6,7,8},{0,3,6},{1,4,7},{2,5,8},{0,4,8},{2,4,6}]
+        winStateList = [
+            {0,1,2},{3,4,5},{6,7,8}, #horizantal win states
+            {0,3,6},{1,4,7},{2,5,8}, #vertical win states
+            {0,4,8},{2,4,6} #diagonal win states
+            ]
         for winState in winStateList:
             if winState <= movesetToEval:
                 return True
@@ -104,7 +119,7 @@ class tictactoeGame:
                 moveToMake = random.choice(tuple(self.getopenmoves()))
         print 'adding move', moveToMake, 'to player ai', self.player2_moves
         self.player2_moves.add(moveToMake)
-        self.current_player_turn = 0
+        self.current_player_turn = PLAYER1
         print 'ai play made at', moveToMake
                 
     def getBoardOut(self):
@@ -115,13 +130,13 @@ class tictactoeGame:
         play2win = self.evaluateWinState(self.player2_moves)
         nomovesleft = len(self.getopenmoves()) == 0
         if play1win == True:
-            self.gamestate = 1 #win
+            self.gamestate = WIN #win
             return ['human won',self.getBoardOut()]
         elif play2win == True:
-            self.gamestate = 1 #win
+            self.gamestate = WIN #win
             return ['ai won',self.getBoardOut()]
         elif nomovesleft == True:
-            self.gamestate = 2 #tie
+            self.gamestate = TIE #tie
             return ['tie',self.getBoardOut()]
         else:
             #human player 1's turn
@@ -134,14 +149,14 @@ class tictactoeGame:
             play2win = self.evaluateWinState(self.player2_moves)
             nomovesleft = len(self.getopenmoves()) == 0
             if play1win == True:
-                self.gamestate = 1 #win
+                self.gamestate = WIN #win
                 return ['human won',self.getBoardOut()]
             elif play2win == True:
-                self.gamestate = 1 #win
+                self.gamestate = WIN #win
                 return ['ai won',self.getBoardOut()]
             elif nomovesleft == True:
-                self.gamestate = 2 #tie
+                self.gamestate = TIE #tie
                 return ['tie',self.getBoardOut()]
             else:
-                self.gamestate = 0 #still in play
+                self.gamestate = IN_PLAY #still in play
                 return ['in play',self.getBoardOut()]
